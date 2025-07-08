@@ -1,23 +1,37 @@
 package echo
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+
+	"github.com/go-audio/wav"
+)
 
 type Renderer struct {
-	File     string
+	WavFile  *wav.Decoder
 	Tempo    int16
 	Bars     int16
 	Division int16
 }
 
-func NewRenderer(file string, tempo int16, bars int16, division int16) *Renderer {
+func NewRenderer(filePath string, tempo, bars, division int16) (*Renderer, error) {
+	f, err := os.Open(filePath)
+	if err != nil {
+		return nil, err
+	}
+	decoder := wav.NewDecoder(f)
+	if !decoder.IsValidFile() {
+		return nil, fmt.Errorf("invalid WAV file: %s", filePath)
+	}
 	return &Renderer{
-		File:     file,
+		WavFile:  decoder,
 		Tempo:    tempo,
 		Bars:     bars,
 		Division: division,
-	}
+	}, nil
 }
 
 func (r *Renderer) Render() {
-	fmt.Printf("Stub: rendering %s at %d BPM for %d bars (division %d)\n", r.File, r.Tempo, r.Bars, r.Division)
+	fmt.Printf("Stub: rendering WAV file with %d BPM for %d bars (division %d)\n", r.Tempo, r.Bars, r.Division)
+	// You can access r.WavFile for audio data here
 }

@@ -15,7 +15,11 @@ var renderCmd = &cobra.Command{
 		bars, _ := cmd.Flags().GetInt16("bars")
 		division, _ := cmd.Flags().GetInt16("division")
 
-		renderer := echo.NewRenderer(file, tempo, bars, division)
+		renderer, err := echo.NewRenderer(file, tempo, bars, division)
+		if err != nil {
+			cmd.PrintErrln("Error creating renderer:", err)
+			return
+		}
 		renderer.Render()
 	},
 }

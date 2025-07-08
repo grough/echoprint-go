@@ -33,12 +33,6 @@ func NewRenderer(filePath string, tempo, bars, division int) (*Renderer, error) 
 }
 
 func (r *Renderer) Render() {
-	fmt.Printf("Rendering echo at %d BPM for %d bars (division %d)\n", r.Tempo, r.Bars, r.Division)
-
-	samplesPerBar := int(r.Tempo) * int(r.InputDecoder.SampleRate) / 60
-	samplesTotal := samplesPerBar * r.Bars * int(r.InputDecoder.NumChans)
-	samplesLoop := samplesPerBar / r.Division * int(r.InputDecoder.NumChans)
-
 	inBuf, err := r.InputDecoder.FullPCMBuffer()
 	if err != nil {
 		fmt.Printf("Error reading input samples: %v\n", err)
@@ -49,16 +43,20 @@ func (r *Renderer) Render() {
 		return
 	}
 
+	framesPerBar := int(r.Tempo) * int(r.InputDecoder.SampleRate) / 60
+	outputFrames := framesPerBar * r.Bars
+	loopFrames := framesPerBar / r.Division
+
 	input := inBuf.Data
-	loop := make([]int, samplesLoop)
-	output := make([]int, samplesTotal)
+	loop := make([]int, loopFrames*int(r.InputDecoder.NumChans))
+	output := make([]int, outputFrames*int(r.InputDecoder.NumChans))
 	loopIndex := 0
 
-	for renderIndex := 0; renderIndex < samplesTotal; renderIndex++ {
-		if renderIndex < len(input) {
-			loop[loopIndex] += input[renderIndex]
+	for outIndex := 0; outIndex < len(output); outIndex++ {
+		if outIndex < len(input) {
+			loop[loopIndex] += input[outIndex]
 		}
-		output[renderIndex] = loop[loopIndex]
+		output[outIndex] = loop[loopIndex]
 		loopIndex++
 		if loopIndex == len(loop) {
 			loopIndex = 0

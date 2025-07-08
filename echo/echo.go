@@ -35,12 +35,9 @@ func NewRenderer(filePath string, tempo, bars, division int) (*Renderer, error) 
 func (r *Renderer) Render() {
 	fmt.Printf("Rendering echo at %d BPM for %d bars (division %d)\n", r.Tempo, r.Bars, r.Division)
 
-	// samplesPerBar := int(r.Tempo) * int(r.InputFile.SampleRate) / 60
-	// samplesTotal := samplesPerBar * r.Bars
-	// samplesLoop := samplesPerBar / r.Division
-
-	// numChans := r.InputFile.NumChans
-	// numSamples := samplesTotal * int(numChans)
+	samplesPerBar := int(r.Tempo) * int(r.InputDecoder.SampleRate) / 60
+	samplesTotal := samplesPerBar * r.Bars * int(r.InputDecoder.NumChans)
+	samplesLoop := samplesPerBar / r.Division * int(r.InputDecoder.NumChans)
 
 	inBuf, err := r.InputDecoder.FullPCMBuffer()
 	if err != nil {
@@ -53,10 +50,19 @@ func (r *Renderer) Render() {
 	}
 
 	input := inBuf.Data
-	output := make([]int, len(inBuf.Data))
+	loop := make([]int, samplesLoop)
+	output := make([]int, samplesTotal)
+	loopIndex := 0
 
-	for i := 0; i < len(input) && i < len(output); i++ {
-		output[i] = input[i]
+	for renderIndex := 0; renderIndex < samplesTotal; renderIndex++ {
+		if renderIndex < len(input) {
+			loop[loopIndex] += input[renderIndex]
+		}
+		output[renderIndex] = loop[loopIndex]
+		loopIndex++
+		if loopIndex == len(loop) {
+			loopIndex = 0
+		}
 	}
 
 	out, err := os.Create("ignore/output.wav")

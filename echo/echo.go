@@ -13,22 +13,24 @@ type Renderer struct {
 	Tempo        int
 	Bars         int
 	Division     int
+	OutputPath   string
 }
 
-func NewRenderer(filePath string, tempo, bars, division int) (*Renderer, error) {
-	f, err := os.Open(filePath)
+func NewRenderer(inputPath string, outputPath string, tempo, bars, division int) (*Renderer, error) {
+	f, err := os.Open(inputPath)
 	if err != nil {
 		return nil, err
 	}
 	decoder := wav.NewDecoder(f)
 	if !decoder.IsValidFile() {
-		return nil, fmt.Errorf("invalid WAV file: %s", filePath)
+		return nil, fmt.Errorf("invalid WAV file: %s", inputPath)
 	}
 	return &Renderer{
 		InputDecoder: decoder,
 		Tempo:        tempo,
 		Bars:         bars,
 		Division:     division,
+		OutputPath:   outputPath,
 	}, nil
 }
 
@@ -63,7 +65,7 @@ func (r *Renderer) Render() {
 		}
 	}
 
-	out, err := os.Create("ignore/output.wav")
+	out, err := os.Create(r.OutputPath)
 	if err != nil {
 		fmt.Printf("Error creating output file: %v\n", err)
 		return

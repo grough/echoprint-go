@@ -15,7 +15,7 @@ func TestNewRenderer(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create renderer: %v", err)
 	}
-	if renderer.WavFile == nil {
+	if renderer.InputDecoder == nil {
 		t.Error("Expected WavFile to be non-nil")
 	}
 }

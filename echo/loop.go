@@ -8,7 +8,7 @@ import (
 	"github.com/go-audio/wav"
 )
 
-type Renderer struct {
+type LoopRenderer struct {
 	InputDecoder *wav.Decoder
 	Tempo        float64
 	Duration     float64
@@ -16,7 +16,7 @@ type Renderer struct {
 	OutputPath   string
 }
 
-func NewRenderer(inputPath string, outputPath string, tempo, duration, delay float64) (*Renderer, error) {
+func NewLoopRenderer(inputPath string, outputPath string, tempo, duration, delay float64) (*LoopRenderer, error) {
 	f, err := os.Open(inputPath)
 	if err != nil {
 		return nil, err
@@ -25,7 +25,7 @@ func NewRenderer(inputPath string, outputPath string, tempo, duration, delay flo
 	if !decoder.IsValidFile() {
 		return nil, fmt.Errorf("invalid WAV file: %s", inputPath)
 	}
-	return &Renderer{
+	return &LoopRenderer{
 		InputDecoder: decoder,
 		Tempo:        tempo,
 		Duration:     duration,
@@ -34,7 +34,7 @@ func NewRenderer(inputPath string, outputPath string, tempo, duration, delay flo
 	}, nil
 }
 
-func (r *Renderer) Render() {
+func (r *LoopRenderer) Render() {
 	inBuf, err := r.InputDecoder.FullPCMBuffer()
 	if err != nil {
 		fmt.Printf("Error reading input samples: %v\n", err)
@@ -54,11 +54,18 @@ func (r *Renderer) Render() {
 	output := make([]int, outputFrames*int(r.InputDecoder.NumChans))
 	loopIndex := 0
 
-	for i := 0; i < len(output); i++ {
-		if i < len(input) {
-			loop[loopIndex] += input[i]
+	for i := 0; i < len(input); i++ {
+		loop[loopIndex] += input[i]
+		loopIndex++
+		if loopIndex == len(loop) {
+			loopIndex = 0
 		}
-		output[i] = loop[loopIndex]
+	}
+
+	loopIndex = 0
+
+	for outIndex := 0; outIndex < len(output); outIndex++ {
+		output[outIndex] = loop[loopIndex]
 		loopIndex++
 		if loopIndex == len(loop) {
 			loopIndex = 0

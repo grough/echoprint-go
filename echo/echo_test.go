@@ -12,7 +12,7 @@ func TestNewRenderer(t *testing.T) {
 		t.Skipf("Test WAV file %s not found, skipping", inputFile)
 	}
 
-	renderer, err := NewRenderer(inputFile, outputFile, 120, 8, 1)
+	renderer, err := NewRenderer(inputFile, outputFile, 120.0, 8.0, 1.0)
 	if err != nil {
 		t.Fatalf("Failed to create renderer: %v", err)
 	}

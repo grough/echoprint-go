@@ -6,9 +6,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var renderCmd = &cobra.Command{
-	Use:   "render [input] [output]",
-	Short: "Render delay repeats",
+var loopCmd = &cobra.Command{
+	Use:   "loop [input] [output]",
+	Short: "Render a seamless loop",
 	Args:  cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 		inputFile := args[0]
@@ -17,7 +17,7 @@ var renderCmd = &cobra.Command{
 		duration, _ := cmd.Flags().GetFloat64("duration")
 		delay, _ := cmd.Flags().GetFloat64("delay")
 
-		renderer, err := echo.NewRenderer(inputFile, outputFile, tempo, duration, delay)
+		renderer, err := echo.NewLoopRenderer(inputFile, outputFile, tempo, duration, delay)
 		if err != nil {
 			cmd.PrintErrln("Error creating renderer:", err)
 			return
@@ -27,9 +27,9 @@ var renderCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(renderCmd)
+	rootCmd.AddCommand(loopCmd)
 
-	renderCmd.Flags().Float64P("tempo", "t", 120, "Base tempo of the delay effect")
-	renderCmd.Flags().Float64P("duration", "b", 8*4, "Output duration in beats")
-	renderCmd.Flags().Float64P("delay", "d", 1, "Delay time in beats")
+	loopCmd.Flags().Float64P("tempo", "t", 120.0, "Base tempo of the loop effect")
+	loopCmd.Flags().Float64P("duration", "b", 8.0, "Output duration in beats")
+	loopCmd.Flags().Float64P("delay", "d", 1.0, "Loop time in beats")
 }
